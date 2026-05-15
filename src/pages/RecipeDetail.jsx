@@ -5,31 +5,27 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { useIngredients } from '@/hooks/useIngredients';
-import { useUnits } from '@/hooks/useIngredients';
-import { useUnitConversions } from '@/hooks/useUnitConversions';
 import {
     useRecipe,
-    useRecipeCost,
     useAttachIngredient,
     useDetachIngredient,
     useUpdateRecipeIngredient,
     useAttachComponent,
     useDetachComponent,
-    useUpdateComponent,
-    useRecipes
+    useUpdateComponent
 } from '@/hooks/useRecipes';
 
 export default function RecipeDetailPage() {
     const { id } = useParams();
     const recipeId = parseInt(id);
 
-    const { data: recipe, isLoading, error } = useRecipe(recipeId);
-    const { data: cost, error: costError } = useRecipeCost(recipeId);
-    const { data: allIngredients } = useIngredients();
-    const { data: units } = useUnits();
-    const { data: conversions } = useUnitConversions();
-    const { data: allRecipes } = useRecipes();
+    const { data, isLoading, error } = useRecipe(recipeId);
+    const recipe = data?.recipe;
+    const units = data?.units || [];
+    const allIngredients = data?.ingredients || [];
+    const conversions = data?.conversions || [];
+    const allRecipes = data?.recipes || [];
+    const cost = data?.cost;
     const attachMutation = useAttachIngredient();
     const detachMutation = useDetachIngredient();
     const updateIngredientMutation = useUpdateRecipeIngredient();
@@ -58,11 +54,11 @@ export default function RecipeDetailPage() {
     const [searchIngredients, setSearchIngredients] = useState('');
     const [searchComponents, setSearchComponents] = useState('');
 
-    const filteredIngredients = recipe.ingredients?.filter((ir) =>
+    const filteredIngredients = recipe?.ingredients?.filter((ir) =>
         ir.ingredient?.name.toLowerCase().includes(searchIngredients.toLowerCase())
     ) || [];
 
-    const filteredComponents = recipe.components?.filter((rc) =>
+    const filteredComponents = recipe?.components?.filter((rc) =>
         rc.recipe?.name.toLowerCase().includes(searchComponents.toLowerCase())
     ) || [];
 
@@ -150,13 +146,15 @@ export default function RecipeDetailPage() {
         setEditForm({ quantity: '', unit_id: '' });
     };
 
-    const availableRecipesForComponent = allRecipes?.filter(r => r.id !== recipeId) || [];
+    const availableRecipesForComponent = (allRecipes || []).filter(r => r.id !== recipeId);
     const porcionUnit = units?.find(u => u.symbol === 'por');
 
     const selectedIngredient = allIngredients?.find(ing => ing.id === parseInt(ingredientForm.ingredient_id));
     const filteredUnits = selectedIngredient && conversions
         ? (() => {
-            const purchaseUnitId = selectedIngredient.purchase_unit_id;
+            const purchaseUnitId = selectedIngredient.ingredient?.purchase_unit_id || selectedIngredient.purchase_unit_id;
+            if (!purchaseUnitId) return [];
+
             const relatedUnitIds = new Set([purchaseUnitId]);
 
             conversions.forEach(conv => {
@@ -173,10 +171,12 @@ export default function RecipeDetailPage() {
         : [];
 
     const getFilteredUnitsForIngredient = (ingredientId) => {
-        const ingredient = allIngredients?.find(ing => ing.id === ingredientId);
-        if (!ingredient || !conversions) return [];
+        const recipeIngredient = recipe?.ingredients?.find(ing => ing.ingredient_id === ingredientId);
+        if (!recipeIngredient || !conversions) return [];
 
-        const purchaseUnitId = ingredient.purchase_unit_id;
+        const purchaseUnitId = recipeIngredient.ingredient?.purchase_unit_id;
+        if (!purchaseUnitId) return [];
+
         const relatedUnitIds = new Set([purchaseUnitId]);
 
         conversions.forEach(conv => {
@@ -195,12 +195,11 @@ export default function RecipeDetailPage() {
         setComponentForm(prev => ({ ...prev, unit_id: porcionUnit.id.toString() }));
     }
 
-    if (isLoading) {
-        return <div>Cargando...</div>;
-    }
+    const costData = cost?.data;
+    const costError = cost?.error;
 
-    if (error || !recipe) {
-        return <div>Error al cargar la receta</div>;
+    if (isLoading || !recipe) {
+        return <div>Cargando...</div>;
     }
 
     return (
@@ -214,7 +213,7 @@ export default function RecipeDetailPage() {
                 </CardHeader>
             </Card>
 
-            {cost && !costError && (
+            {costData && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Costos</CardTitle>
@@ -222,11 +221,11 @@ export default function RecipeDetailPage() {
                     <CardContent>
                         <div className="mb-4 grid grid-cols-3 gap-4 text-center">
                             <div>
-                                <p className="text-2xl font-bold">${cost.total_cost.toFixed(2)}</p>
+                                <p className="text-2xl font-bold">${costData.total_cost?.toFixed(2)}</p>
                                 <p className="text-sm text-muted-foreground">Costo Total</p>
                             </div>
                             <div>
-                                <p className="text-2xl font-bold">${cost.cost_per_serving.toFixed(2)}</p>
+                                <p className="text-2xl font-bold">${costData.cost_per_serving?.toFixed(2)}</p>
                                 <p className="text-sm text-muted-foreground">Por Porción</p>
                             </div>
                             <div>
@@ -235,34 +234,36 @@ export default function RecipeDetailPage() {
                             </div>
                         </div>
 
-                        <div className="mt-4">
-                            <h4 className="font-semibold">Desglose de Ingredientes</h4>
-                            <div className="mt-2 border rounded-lg overflow-hidden">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-muted">
-                                        <tr>
-                                            <th className="text-left px-3 py-2 font-medium">Ingrediente</th>
-                                            <th className="text-right px-3 py-2 font-medium">Cantidad</th>
-                                            <th className="text-right px-3 py-2 font-medium">Unidad</th>
-                                            <th className="text-right px-3 py-2 font-medium">Costo</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y">
-                                        {cost.ingredients_cost.map((ic) => (
-                                            <tr key={ic.ingredient_id} className={ic.is_recipe ? 'bg-muted/50' : ''}>
-                                                <td className="px-3 py-2">
-                                                    <span className="font-medium">{ic.name}</span>
-                                                    {ic.is_recipe && <span className="ml-2 text-xs text-muted-foreground">(receta)</span>}
-                                                </td>
-                                                <td className="text-right px-3 py-2">{ic.quantity_used}</td>
-                                                <td className="text-right px-3 py-2">{ic.unit === 'por' ? 'porciones' : ic.unit}</td>
-                                                <td className="text-right px-3 py-2 font-medium">${ic.cost_per_recipe.toFixed(2)}</td>
+                        {costData.ingredients_cost && costData.ingredients_cost.length > 0 && (
+                            <div className="mt-4">
+                                <h4 className="font-semibold">Desglose de Ingredientes</h4>
+                                <div className="mt-2 border rounded-lg overflow-hidden">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-muted">
+                                            <tr>
+                                                <th className="text-left px-3 py-2 font-medium">Ingrediente</th>
+                                                <th className="text-right px-3 py-2 font-medium">Cantidad</th>
+                                                <th className="text-right px-3 py-2 font-medium">Unidad</th>
+                                                <th className="text-right px-3 py-2 font-medium">Costo</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody className="divide-y">
+                                            {costData.ingredients_cost.map((ic) => (
+                                                <tr key={ic.ingredient_id} className={ic.is_recipe ? 'bg-muted/50' : ''}>
+                                                    <td className="px-3 py-2">
+                                                        <span className="font-medium">{ic.name}</span>
+                                                        {ic.is_recipe && <span className="ml-2 text-xs text-muted-foreground">(receta)</span>}
+                                                    </td>
+                                                    <td className="text-right px-3 py-2">{ic.quantity_used}</td>
+                                                    <td className="text-right px-3 py-2">{ic.unit === 'por' ? 'porciones' : ic.unit}</td>
+                                                    <td className="text-right px-3 py-2 font-medium">${ic.cost_per_recipe?.toFixed(2)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </CardContent>
                 </Card>
             )}
@@ -369,21 +370,21 @@ export default function RecipeDetailPage() {
                                 </Button>
                             </div>
                         )}
-                        {filteredIngredients.map((ir) => (
-                            <div key={ir.id} className="flex items-center justify-between rounded-lg border p-3">
+                        {filteredIngredients.map((ir, index) => (
+                            <div key={ir.ingredient_id || index} className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-3 gap-2">
                                 {editingIngredientId === ir.ingredient_id ? (
-                                    <form onSubmit={handleUpdateIngredient} className="flex flex-1 items-center gap-2">
-                                        <span className="flex-1 font-medium">{ir.ingredient?.name}</span>
+                                    <form onSubmit={handleUpdateIngredient} className="flex flex-1 flex-wrap items-center gap-2">
+                                        <span className="min-w-0 flex-1 font-medium truncate">{ir.ingredient?.name}</span>
                                         <Input
                                             type="number"
                                             step="0.0001"
-                                            className="w-24"
+                                            className="w-24 flex-shrink-0"
                                             value={editForm.quantity}
                                             onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
                                             required
                                         />
                                         <select
-                                            className="border-input flex h-9 rounded-md border bg-transparent px-2 text-sm"
+                                            className="border-input flex h-9 rounded-md border bg-transparent px-2 text-sm flex-shrink-0"
                                             value={editForm.unit_id}
                                             onChange={(e) => setEditForm({ ...editForm, unit_id: e.target.value })}
                                             required
@@ -395,7 +396,7 @@ export default function RecipeDetailPage() {
                                                 </option>
                                             ))}
                                         </select>
-                                        <div className="flex items-center gap-0.5">
+                                        <div className="flex items-center gap-0.5 flex-shrink-0">
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <Button type="submit" size="icon" variant="ghost" className="h-8 w-8 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30" disabled={updateIngredientMutation.isPending}>
@@ -551,21 +552,21 @@ export default function RecipeDetailPage() {
                                 </Button>
                             </div>
                         )}
-                        {filteredComponents.map((rc) => (
-                            <div key={rc.id} className="flex items-center justify-between rounded-lg border p-3">
+                        {filteredComponents.map((rc, index) => (
+                            <div key={rc.component_recipe_id || index} className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-3 gap-2">
                                 {editingComponentId === rc.component_recipe_id ? (
-                                    <form onSubmit={handleUpdateComponent} className="flex flex-1 items-center gap-2">
-                                        <span className="flex-1 font-medium">{rc.recipe?.name}</span>
+                                    <form onSubmit={handleUpdateComponent} className="flex flex-1 flex-wrap items-center gap-2">
+                                        <span className="min-w-0 flex-1 font-medium truncate">{rc.recipe?.name}</span>
                                         <Input
                                             type="number"
                                             step="0.0001"
-                                            className="w-24"
+                                            className="w-24 flex-shrink-0"
                                             value={editForm.quantity}
                                             onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
                                             required
                                         />
                                         <select
-                                            className="border-input flex h-9 rounded-md border bg-transparent px-2 text-sm"
+                                            className="border-input flex h-9 rounded-md border bg-transparent px-2 text-sm flex-shrink-0"
                                             value={editForm.unit_id}
                                             onChange={(e) => setEditForm({ ...editForm, unit_id: e.target.value })}
                                             required
@@ -577,7 +578,7 @@ export default function RecipeDetailPage() {
                                                 </option>
                                             ))}
                                         </select>
-                                        <div className="flex items-center gap-0.5">
+                                        <div className="flex items-center gap-0.5 flex-shrink-0">
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <Button type="submit" size="icon" variant="ghost" className="h-8 w-8 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30" disabled={updateComponentMutation.isPending}>

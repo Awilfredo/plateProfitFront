@@ -3,7 +3,7 @@ import { api } from '@/lib/api';
 
 export function useUnitConversions() {
     return useQuery({
-        queryKey: ['unit-conversions'],
+        queryKey: ['unit-conversions', 'units'],
         queryFn: api.getUnitConversions,
     });
 }

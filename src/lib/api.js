@@ -1,5 +1,5 @@
-const API_BASE = 'https://rockochitlan.com/api';
-
+//const API_BASE = 'https://rockochitlan.com/api';
+const API_BASE = '/api';
 export const api = {
     async getUnits() {
         const res = await fetch(`${API_BASE}/units`);
@@ -20,7 +20,7 @@ export const api = {
     async getUnitConversions() {
         const res = await fetch(`${API_BASE}/unit-conversions`);
         const json = await res.json();
-        return json.data;
+        return json;
     },
 
     async createUnitConversion(data) {
@@ -40,7 +40,7 @@ export const api = {
     async getIngredients() {
         const res = await fetch(`${API_BASE}/ingredients`);
         const json = await res.json();
-        return json.data;
+        return json;
     },
 
     async getIngredient(id) {
@@ -76,13 +76,13 @@ export const api = {
     async getRecipes() {
         const res = await fetch(`${API_BASE}/recipes`);
         const json = await res.json();
-        return json.data;
+        return json;
     },
 
     async getRecipe(id) {
         const res = await fetch(`${API_BASE}/recipes/${id}`);
         const json = await res.json();
-        return json.data;
+        return json;
     },
 
     async createRecipe(data) {
@@ -170,5 +170,11 @@ export const api = {
             throw new Error(json.error || 'Failed to calculate recipe cost');
         }
         return json.data;
+    },
+
+    async getDashboard() {
+        const res = await fetch(`${API_BASE}/dashboard`);
+        const json = await res.json();
+        return json;
     },
 };

@@ -10,7 +10,7 @@ export function useRecipes() {
 
 export function useRecipe(id) {
     return useQuery({
-        queryKey: ['recipes', id],
+        queryKey: ['recipe-detail', id],
         queryFn: () => api.getRecipe(id),
         enabled: !!id,
     });
@@ -76,8 +76,7 @@ export function useAttachIngredient() {
         mutationFn: ({ recipeId, ingredientId, quantity, unitId }) =>
             api.attachIngredient(recipeId, ingredientId, quantity, unitId),
         onSuccess: (_, { recipeId }) => {
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId] });
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId, 'cost'] });
+            queryClient.invalidateQueries({ queryKey: ['recipe-detail', recipeId] });
         },
     });
 }
@@ -89,8 +88,7 @@ export function useDetachIngredient() {
         mutationFn: ({ recipeId, ingredientId }) =>
             api.detachIngredient(recipeId, ingredientId),
         onSuccess: (_, { recipeId }) => {
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId] });
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId, 'cost'] });
+            queryClient.invalidateQueries({ queryKey: ['recipe-detail', recipeId] });
         },
     });
 }
@@ -102,8 +100,7 @@ export function useUpdateRecipeIngredient() {
         mutationFn: ({ recipeId, ingredientId, quantity, unitId }) =>
             api.updateRecipeIngredient(recipeId, ingredientId, quantity, unitId),
         onSuccess: (_, { recipeId }) => {
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId] });
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId, 'cost'] });
+            queryClient.invalidateQueries({ queryKey: ['recipe-detail', recipeId] });
         },
     });
 }
@@ -115,8 +112,7 @@ export function useAttachComponent() {
         mutationFn: ({ recipeId, componentRecipeId, quantity, unitId }) =>
             api.attachComponent(recipeId, componentRecipeId, quantity, unitId),
         onSuccess: (_, { recipeId }) => {
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId] });
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId, 'cost'] });
+            queryClient.invalidateQueries({ queryKey: ['recipe-detail', recipeId] });
         },
     });
 }
@@ -128,8 +124,7 @@ export function useUpdateComponent() {
         mutationFn: ({ recipeId, componentRecipeId, quantity, unitId }) =>
             api.updateComponent(recipeId, componentRecipeId, quantity, unitId),
         onSuccess: (_, { recipeId }) => {
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId] });
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId, 'cost'] });
+            queryClient.invalidateQueries({ queryKey: ['recipe-detail', recipeId] });
         },
     });
 }
@@ -141,8 +136,14 @@ export function useDetachComponent() {
         mutationFn: ({ recipeId, componentRecipeId }) =>
             api.detachComponent(recipeId, componentRecipeId),
         onSuccess: (_, { recipeId }) => {
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId] });
-            queryClient.invalidateQueries({ queryKey: ['recipes', recipeId, 'cost'] });
+            queryClient.invalidateQueries({ queryKey: ['recipe-detail', recipeId] });
         },
+    });
+}
+
+export function useDashboard() {
+    return useQuery({
+        queryKey: ['dashboard'],
+        queryFn: api.getDashboard,
     });
 }

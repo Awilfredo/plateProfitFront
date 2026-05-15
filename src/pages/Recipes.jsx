@@ -8,7 +8,8 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { useRecipes, useCreateRecipe, useDeleteRecipe, useCloneRecipe } from '@/hooks/useRecipes';
 
 export default function RecipesPage() {
-    const { data: recipes, isLoading, error } = useRecipes();
+    const { data, isLoading, error } = useRecipes();
+    const recipes = data?.recipes;
     const createMutation = useCreateRecipe();
     const deleteMutation = useDeleteRecipe();
     const cloneMutation = useCloneRecipe();

@@ -15,6 +15,13 @@ export function useUnits() {
     });
 }
 
+export function useIngredientsAndUnits() {
+    return useQuery({
+        queryKey: ['ingredients', 'units'],
+        queryFn: api.getIngredients,
+    });
+}
+
 export function useIngredient(id) {
     return useQuery({
         queryKey: ['ingredients', id],

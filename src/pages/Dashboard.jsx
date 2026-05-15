@@ -11,18 +11,16 @@ import { FaBalanceScale } from 'react-icons/fa';
 import { GiCookingPot } from 'react-icons/gi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useIngredients } from '@/hooks/useIngredients';
-import { useRecipes, useRecipeCost } from '@/hooks/useRecipes';
-import { useUnitConversions } from '@/hooks/useUnitConversions';
-import { useUnits } from '@/hooks/useIngredients';
+import { useDashboard } from '@/hooks/useRecipes';
 
 export default function Dashboard() {
-    const { data: recipes, isLoading: recipesLoading } = useRecipes();
-    const { data: ingredients, isLoading: ingredientsLoading } = useIngredients();
-    const { data: conversions } = useUnitConversions();
-    const { data: units } = useUnits();
+    const { data, isLoading } = useDashboard();
+    const recipes = data?.recipes;
+    const units = data?.units;
+    const conversions = data?.conversions;
+    const ingredients = data?.ingredients;
 
-    if (recipesLoading || ingredientsLoading) {
+    if (isLoading) {
         return (
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="text-center py-8 text-muted-foreground">Cargando...</div>
@@ -76,7 +74,7 @@ export default function Dashboard() {
                 <StatCard
                     title="Costo Promedio"
                     value={recipes && recipes.length > 0
-                        ? `$${recipes.reduce((sum, r) => sum + (r.avg_cost || 0), 0).toFixed(2)}`
+                        ? `$${recipes.reduce((sum, r) => sum + (r.cost?.total_cost || 0), 0).toFixed(2)}`
                         : '$0.00'}
                     icon={<Scale className="h-5 w-5" />}
                 />
@@ -134,8 +132,6 @@ function TopRecipesCard({ recipes }) {
 }
 
 function TopRecipeItem({ recipe }) {
-    const { data: cost } = useRecipeCost(recipe.id);
-
     return (
         <div className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50 transition-colors">
             <div className="flex flex-col">
@@ -143,8 +139,8 @@ function TopRecipeItem({ recipe }) {
                 <span className="text-xs text-muted-foreground">{recipe.servings} porciones</span>
             </div>
             <div className="text-right">
-                {cost ? (
-                    <span className="font-medium text-primary">${cost.total_cost.toFixed(2)}</span>
+                {recipe.cost ? (
+                    <span className="font-medium text-primary">${recipe.cost.total_cost.toFixed(2)}</span>
                 ) : (
                     <span className="text-xs text-muted-foreground">-</span>
                 )}

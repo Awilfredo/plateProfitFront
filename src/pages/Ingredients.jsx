@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { useIngredients, useCreateIngredient, useDeleteIngredient, useUpdateIngredient } from '@/hooks/useIngredients';
-import { useUnits } from '@/hooks/useIngredients';
+import { useIngredientsAndUnits, useCreateIngredient, useDeleteIngredient, useUpdateIngredient } from '@/hooks/useIngredients';
 
 export default function IngredientsPage() {
-    const { data: ingredients, isLoading, error } = useIngredients();
-    const { data: units } = useUnits();
+    const { data, isLoading, error } = useIngredientsAndUnits();
+    const ingredients = data?.ingredients;
+    const units = data?.units;
     const createMutation = useCreateIngredient();
     const deleteMutation = useDeleteIngredient();
     const updateMutation = useUpdateIngredient();

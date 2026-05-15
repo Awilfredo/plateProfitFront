@@ -6,11 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useUnitConversions, useCreateUnitConversion, useDeleteUnitConversion } from '@/hooks/useUnitConversions';
-import { useUnits } from '@/hooks/useIngredients';
 
 export default function ConversionsPage() {
-    const { data: units } = useUnits();
-    const { data: conversions, isLoading } = useUnitConversions();
+    const { data, isLoading } = useUnitConversions();
+    const conversions = data?.conversions;
+    const units = data?.units;
     const createMutation = useCreateUnitConversion();
     const deleteMutation = useDeleteUnitConversion();
 
