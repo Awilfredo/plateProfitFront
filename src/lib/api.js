@@ -1,5 +1,5 @@
-//const API_BASE = 'https://rockochitlan.com/api';
-const API_BASE = '/api';
+const API_BASE = 'https://rockochitlan.com/api';
+//const API_BASE = '/api';
 export const api = {
     async getUnits() {
         const res = await fetch(`${API_BASE}/units`);
