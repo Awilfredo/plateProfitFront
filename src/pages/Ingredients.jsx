@@ -125,7 +125,10 @@ export default function IngredientsPage() {
                         </Button>
                     </form>
 
-                    <div className="relative mb-4 max-w-xs">
+                </CardContent>
+            </Card>
+
+                    <div className="relative mt-1 max-w-xs">
                         <Input
                             placeholder="Buscar ingrediente..."
                             value={search}
@@ -143,9 +146,6 @@ export default function IngredientsPage() {
                             </Button>
                         )}
                     </div>
-
-                </CardContent>
-            </Card>
                     {isLoading && <p>Cargando...</p>}
                     {error && <p className="text-destructive">Error al cargar ingredientes</p>}
 
@@ -157,7 +157,7 @@ export default function IngredientsPage() {
                         <p className="text-sm text-muted-foreground">No hay ingredientes agregados</p>
                     )}
 
-                    <div className="mt-4 rounded-md border">
+                    <div className="rounded-md border">
                         <div className="hidden md:block overflow-x-auto overflow-y-auto max-h-[500px]">
                             <table className="w-full text-sm dark:bg-gray-900">
                                 <thead className="sticky top-0 z-10 bg-muted border-b">

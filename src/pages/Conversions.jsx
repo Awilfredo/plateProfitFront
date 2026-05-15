@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Trash2, Plus } from 'lucide-react';
+import { ArrowRight, Trash2, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -15,6 +15,7 @@ export default function ConversionsPage() {
     const deleteMutation = useDeleteUnitConversion();
 
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [search, setSearch] = useState('');
 
     const [form, setForm] = useState({
         from_unit_id: '',
@@ -31,6 +32,13 @@ export default function ConversionsPage() {
         });
         setForm({ from_unit_id: '', to_unit_id: '', conversion_factor: '' });
     };
+
+    const filteredConversions = conversions?.filter((c) =>
+        c.from_unit?.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.to_unit?.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.from_unit?.symbol.toLowerCase().includes(search.toLowerCase()) ||
+        c.to_unit?.symbol.toLowerCase().includes(search.toLowerCase())
+    );
 
     const handleSelectFromUnit = (unitId) => {
         setForm({ ...form, from_unit_id: unitId });
@@ -121,13 +129,32 @@ export default function ConversionsPage() {
                 </CardContent>
             </Card>
 
+            <div className="relative max-w-xs">
+                <Input
+                    placeholder="Buscar conversión..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pr-8"
+                />
+                {search && (
+                    <Button
+                        size="icon"
+                        variant="ghost"
+                        className="absolute right-0 top-0 h-full px-2"
+                        onClick={() => setSearch('')}
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
+                )}
+            </div>
+
             {isLoading ? (
                 <div className="flex justify-center p-8">
                     <p className="text-muted-foreground">Cargando...</p>
                 </div>
-            ) : conversions?.length === 0 ? (
+            ) : filteredConversions?.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 text-center">
-                    <p className="text-muted-foreground">No hay conversiones configuradas</p>
+                    <p className="text-muted-foreground">No se encontraron conversiones{search ? ` para "${search}"` : ''}</p>
                     <p className="text-sm text-muted-foreground">
                         Agrega conversiones para calcular costos correctamente
                     </p>
@@ -147,7 +174,7 @@ export default function ConversionsPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {conversions?.map((conv) => (
+                                    {filteredConversions?.map((conv) => (
                                         <tr key={conv.id} className="border-b last:border-b-0 hover:bg-muted/30">
                                             <td className="px-3 py-2 whitespace-nowrap">
                                                 <span className="font-medium">{conv.from_unit?.name}</span>
@@ -186,7 +213,7 @@ export default function ConversionsPage() {
                     </div>
 
                     <div className="md:hidden space-y-2">
-                        {conversions?.map((conv) => (
+                        {filteredConversions?.map((conv) => (
                             <div key={conv.id} className="p-3 rounded-lg border bg-card">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">

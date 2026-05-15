@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, Trash2, X, Check } from 'lucide-react';
+import { Pencil, Trash2, X, Check, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,12 @@ export default function UnitsPage() {
 
     const [editingId, setEditingId] = useState(null);
     const [editForm, setEditForm] = useState({ name: '', symbol: '', type: '' });
+    const [search, setSearch] = useState('');
+
+    const filteredUnits = units?.filter((u) =>
+        u.name.toLowerCase().includes(search.toLowerCase()) ||
+        u.symbol.toLowerCase().includes(search.toLowerCase())
+    );
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -92,14 +98,37 @@ export default function UnitsPage() {
 
                 </CardContent>
             </Card>
+
+            <div className="relative max-w-xs">
+                <Input
+                    placeholder="Buscar unidad..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pr-8"
+                        />
+                        {search && (
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="absolute right-0 top-0 h-full px-2"
+                                onClick={() => setSearch('')}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
                     {isLoading && <p>Cargando...</p>}
                     {error && <p className="text-destructive">Error al cargar unidades</p>}
 
-                    {units?.length === 0 && (
+                    {filteredUnits?.length === 0 && search && (
+                        <p className="text-sm text-muted-foreground">No se encontraron unidades para "{search}"</p>
+                    )}
+
+                    {filteredUnits?.length === 0 && !search && (
                         <p className="text-sm text-muted-foreground">No hay unidades agregadas</p>
                     )}
 
-                    <div className="mt-4 rounded-md border hidden md:block">
+                    <div className="rounded-md border hidden md:block">
                         <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                             <table className="w-full text-sm dark:bg-gray-900">
                                 <thead className="sticky top-0 z-10 bg-muted border-b">
@@ -111,7 +140,7 @@ export default function UnitsPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {units?.map((unit) => (
+                                    {filteredUnits?.map((unit) => (
                                         <tr key={unit.id} className="border-b last:border-b-0 hover:bg-muted/30">
                                             <td className="px-3 py-2 whitespace-nowrap">
                                                 {editingId === unit.id ? (

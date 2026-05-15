@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Pencil, Trash2, Plus, X, Eye } from 'lucide-react';
+import { Pencil, Trash2, Plus, X, Eye, Search, UtensilsCrossed, BookCopy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -55,6 +55,16 @@ export default function RecipeDetailPage() {
         quantity: '',
         unit_id: '',
     });
+    const [searchIngredients, setSearchIngredients] = useState('');
+    const [searchComponents, setSearchComponents] = useState('');
+
+    const filteredIngredients = recipe.ingredients?.filter((ir) =>
+        ir.ingredient?.name.toLowerCase().includes(searchIngredients.toLowerCase())
+    ) || [];
+
+    const filteredComponents = recipe.components?.filter((rc) =>
+        rc.recipe?.name.toLowerCase().includes(searchComponents.toLowerCase())
+    ) || [];
 
     const handleAddIngredient = async (e) => {
         e.preventDefault();
@@ -319,11 +329,47 @@ export default function RecipeDetailPage() {
                         </form>
                     )}
 
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 items-start">
-                        {recipe.ingredients?.length === 0 && (
-                            <p className="text-sm text-muted-foreground py-4 text-center col-span-full">No hay ingredientes agregados</p>
+                    {recipe.ingredients?.length > 0 && (
+                        <div className="relative mb-4 max-w-xs">
+                            <Input
+                                placeholder="Buscar ingrediente..."
+                                value={searchIngredients}
+                                onChange={(e) => setSearchIngredients(e.target.value)}
+                                className="pr-8"
+                            />
+                            {searchIngredients && (
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="absolute right-0 top-0 h-full px-2"
+                                    onClick={() => setSearchIngredients('')}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 items-start">
+                        {filteredIngredients.length === 0 && searchIngredients && (
+                            <div className="col-span-full flex flex-col items-center justify-center py-8 text-center">
+                                <p className="text-sm text-muted-foreground mb-4">No se encontraron ingredientes para "{searchIngredients}"</p>
+                                <Button variant="outline" size="sm" onClick={() => setSearchIngredients('')}>
+                                    Limpiar búsqueda
+                                </Button>
+                            </div>
                         )}
-                        {recipe.ingredients?.map((ir) => (
+                        {filteredIngredients.length === 0 && !searchIngredients && recipe.ingredients?.length === 0 && (
+                            <div className="col-span-full flex flex-col items-center justify-center py-8 text-center">
+                                <UtensilsCrossed className="h-10 w-10 text-muted-foreground/50 mb-3" />
+                                <p className="text-sm text-muted-foreground mb-4">No hay ingredientes agregados</p>
+                                <Button size="sm" onClick={() => setShowAddIngredient(true)}>
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    Agregar Ingrediente
+                                </Button>
+                            </div>
+                        )}
+                        {filteredIngredients.map((ir) => (
                             <div key={ir.id} className="flex items-center justify-between rounded-lg border p-3">
                                 {editingIngredientId === ir.ingredient_id ? (
                                     <form onSubmit={handleUpdateIngredient} className="flex flex-1 items-center gap-2">
@@ -465,11 +511,47 @@ export default function RecipeDetailPage() {
                         </form>
                     )}
 
+                    {recipe.components?.length > 0 && (
+                        <div className="relative mb-4 max-w-xs">
+                            <Input
+                                placeholder="Buscar sub-receta..."
+                                value={searchComponents}
+                                onChange={(e) => setSearchComponents(e.target.value)}
+                                className="pr-8"
+                            />
+                            {searchComponents && (
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="absolute right-0 top-0 h-full px-2"
+                                    onClick={() => setSearchComponents('')}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 items-start">
-                        {recipe.components?.length === 0 && (
-                            <p className="text-sm text-muted-foreground py-4 text-center col-span-full">No hay sub-recetas agregadas</p>
+                        {filteredComponents.length === 0 && searchComponents && (
+                            <div className="col-span-full flex flex-col items-center justify-center py-8 text-center">
+                                <p className="text-sm text-muted-foreground mb-4">No se encontraron sub-recetas para "{searchComponents}"</p>
+                                <Button variant="outline" size="sm" onClick={() => setSearchComponents('')}>
+                                    Limpiar búsqueda
+                                </Button>
+                            </div>
                         )}
-                        {recipe.components?.map((rc) => (
+                        {filteredComponents.length === 0 && !searchComponents && recipe.components?.length === 0 && (
+                            <div className="col-span-full flex flex-col items-center justify-center py-8 text-center">
+                                <BookCopy className="h-10 w-10 text-muted-foreground/50 mb-3" />
+                                <p className="text-sm text-muted-foreground mb-4">No hay sub-recetas agregadas</p>
+                                <Button size="sm" onClick={() => setShowAddComponent(true)}>
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    Agregar Sub-Receta
+                                </Button>
+                            </div>
+                        )}
+                        {filteredComponents.map((rc) => (
                             <div key={rc.id} className="flex items-center justify-between rounded-lg border p-3">
                                 {editingComponentId === rc.component_recipe_id ? (
                                     <form onSubmit={handleUpdateComponent} className="flex flex-1 items-center gap-2">
