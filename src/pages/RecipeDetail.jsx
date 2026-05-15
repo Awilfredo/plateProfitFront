@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
+import { Pencil, Trash2, Plus, X, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useIngredients } from '@/hooks/useIngredients';
 import { useUnits } from '@/hooks/useIngredients';
 import { useUnitConversions } from '@/hooks/useUnitConversions';
@@ -192,7 +194,8 @@ export default function RecipeDetailPage() {
     }
 
     return (
-        <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+        <Tooltip>
+        <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 pb-24">
             <Card>
                 <CardHeader>
                     <CardTitle>{recipe.name}</CardTitle>
@@ -316,7 +319,10 @@ export default function RecipeDetailPage() {
                         </form>
                     )}
 
-                    <div className="space-y-2">
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 items-start">
+                        {recipe.ingredients?.length === 0 && (
+                            <p className="text-sm text-muted-foreground py-4 text-center col-span-full">No hay ingredientes agregados</p>
+                        )}
                         {recipe.ingredients?.map((ir) => (
                             <div key={ir.id} className="flex items-center justify-between rounded-lg border p-3">
                                 {editingIngredientId === ir.ingredient_id ? (
@@ -343,36 +349,60 @@ export default function RecipeDetailPage() {
                                                 </option>
                                             ))}
                                         </select>
-                                        <Button type="submit" size="sm" disabled={updateIngredientMutation.isPending}>
-                                            {updateIngredientMutation.isPending ? '...' : 'OK'}
-                                        </Button>
-                                        <Button type="button" size="sm" variant="ghost" onClick={cancelEditIngredient}>
-                                            ×
-                                        </Button>
+                                        <div className="flex items-center gap-0.5">
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button type="submit" size="icon" variant="ghost" className="h-8 w-8 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30" disabled={updateIngredientMutation.isPending}>
+                                                        <Plus className="h-4 w-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Guardar</TooltipContent>
+                                            </Tooltip>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button type="button" size="icon" variant="ghost" className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30" onClick={cancelEditIngredient}>
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Cancelar</TooltipContent>
+                                            </Tooltip>
+                                        </div>
                                     </form>
                                 ) : (
                                     <>
-                                        <div>
+                                        <div className="flex-1">
                                             <p className="font-medium">{ir.ingredient?.name}</p>
                                             <p className="text-sm text-muted-foreground">
                                                 {ir.quantity} {ir.unit?.symbol}
                                             </p>
                                         </div>
-                                        <div className="flex gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => startEditIngredient(ir)}
-                                            >
-                                                ✎
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => detachMutation.mutate({ recipeId, ingredientId: ir.ingredient_id })}
-                                            >
-                                                ×
-                                            </Button>
+                                        <div className="flex items-center gap-0.5">
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30"
+                                                        onClick={() => startEditIngredient(ir)}
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Editar</TooltipContent>
+                                            </Tooltip>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                                                        onClick={() => detachMutation.mutate({ recipeId, ingredientId: ir.ingredient_id })}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Eliminar</TooltipContent>
+                                            </Tooltip>
                                         </div>
                                     </>
                                 )}
@@ -435,14 +465,15 @@ export default function RecipeDetailPage() {
                         </form>
                     )}
 
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 items-start">
+                        {recipe.components?.length === 0 && (
+                            <p className="text-sm text-muted-foreground py-4 text-center col-span-full">No hay sub-recetas agregadas</p>
+                        )}
                         {recipe.components?.map((rc) => (
                             <div key={rc.id} className="flex items-center justify-between rounded-lg border p-3">
                                 {editingComponentId === rc.component_recipe_id ? (
                                     <form onSubmit={handleUpdateComponent} className="flex flex-1 items-center gap-2">
-
-                                            <span className="flex-1 font-medium">{rc.recipe?.name}</span>
-                      
+                                        <span className="flex-1 font-medium">{rc.recipe?.name}</span>
                                         <Input
                                             type="number"
                                             step="0.0001"
@@ -464,38 +495,76 @@ export default function RecipeDetailPage() {
                                                 </option>
                                             ))}
                                         </select>
-                                        <Button type="submit" size="sm" disabled={updateComponentMutation.isPending}>
-                                            {updateComponentMutation.isPending ? '...' : 'OK'}
-                                        </Button>
-                                        <Button type="button" size="sm" variant="ghost" onClick={cancelEditComponent}>
-                                            ×
-                                        </Button>
+                                        <div className="flex items-center gap-0.5">
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button type="submit" size="icon" variant="ghost" className="h-8 w-8 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30" disabled={updateComponentMutation.isPending}>
+                                                        <Plus className="h-4 w-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Guardar</TooltipContent>
+                                            </Tooltip>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button type="button" size="icon" variant="ghost" className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30" onClick={cancelEditComponent}>
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Cancelar</TooltipContent>
+                                            </Tooltip>
+                                        </div>
                                     </form>
                                 ) : (
                                     <>
-                                        <div>
-                                            <a href={`/recipes/${rc.component_recipe_id}`}>
-                                                <span className="flex-1 font-medium">{rc.recipe?.name}</span>
-                                            </a>
+                                        <div className="flex-1">
+                                            <Link to={`/recipes/${rc.component_recipe_id}`} className="font-medium hover:text-primary">
+                                                {rc.recipe?.name}
+                                            </Link>
                                             <p className="text-sm text-muted-foreground">
                                                 {rc.quantity} {rc.unit?.symbol === 'por' ? 'porciones' : rc.unit?.symbol}
                                             </p>
                                         </div>
-                                        <div className="flex gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => startEditComponent(rc)}
-                                            >
-                                                ✎
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => detachComponentMutation.mutate({ recipeId, componentRecipeId: rc.component_recipe_id })}
-                                            >
-                                                ×
-                                            </Button>
+                                        <div className="flex items-center gap-0.5">
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Link to={`/recipes/${rc.component_recipe_id}`}>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30"
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </Button>
+                                                    </Link>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Ver receta</TooltipContent>
+                                            </Tooltip>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30"
+                                                        onClick={() => startEditComponent(rc)}
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Editar</TooltipContent>
+                                            </Tooltip>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                                                        onClick={() => detachComponentMutation.mutate({ recipeId, componentRecipeId: rc.component_recipe_id })}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Eliminar</TooltipContent>
+                                            </Tooltip>
                                         </div>
                                     </>
                                 )}
@@ -505,5 +574,6 @@ export default function RecipeDetailPage() {
                 </CardContent>
             </Card>
         </div>
+        </Tooltip>
     );
 }

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useUnitConversions, useCreateUnitConversion, useDeleteUnitConversion } from '@/hooks/useUnitConversions';
 import { useUnits } from '@/hooks/useIngredients';
 
@@ -52,7 +53,8 @@ export default function ConversionsPage() {
     };
 
     return (
-        <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
+        <Tooltip>
+        <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4 pb-24">
             <Card>
                 <CardHeader>
                     <CardTitle>Agregar Conversión</CardTitle>
@@ -123,26 +125,78 @@ export default function ConversionsPage() {
                 <div className="flex justify-center p-8">
                     <p className="text-muted-foreground">Cargando...</p>
                 </div>
+            ) : conversions?.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <p className="text-muted-foreground">No hay conversiones configuradas</p>
+                    <p className="text-sm text-muted-foreground">
+                        Agrega conversiones para calcular costos correctamente
+                    </p>
+                </div>
             ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {conversions?.map((conv) => (
-                        <Card key={conv.id} className="relative overflow-hidden">
-                            <CardContent className="p-4">
+                <>
+                    <div className="rounded-md border hidden md:block">
+                        <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                            <table className="w-full text-sm dark:bg-gray-900">
+                                <thead className="sticky top-0 z-10 bg-muted border-b">
+                                    <tr>
+                                        <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Desde</th>
+                                        <th className="px-3 py-2 text-center font-medium whitespace-nowrap"></th>
+                                        <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Hacia</th>
+                                        <th className="px-3 py-2 text-right font-medium whitespace-nowrap">Factor</th>
+                                        <th className="px-3 py-2 text-center font-medium whitespace-nowrap">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {conversions?.map((conv) => (
+                                        <tr key={conv.id} className="border-b last:border-b-0 hover:bg-muted/30">
+                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                <span className="font-medium">{conv.from_unit?.name}</span>
+                                                <span className="ml-1 text-muted-foreground">({conv.from_unit?.symbol})</span>
+                                            </td>
+                                            <td className="px-3 py-2 text-center">
+                                                <ArrowRight className="h-4 w-4 text-muted-foreground inline" />
+                                            </td>
+                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                <span className="font-medium">{conv.to_unit?.name}</span>
+                                                <span className="ml-1 text-muted-foreground">({conv.to_unit?.symbol})</span>
+                                            </td>
+                                            <td className="px-3 py-2 text-right whitespace-nowrap">
+                                                <span className="font-bold text-primary">{conv.conversion_factor}</span>
+                                            </td>
+                                            <td className="px-3 py-2 text-center whitespace-nowrap">
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                                                            onClick={() => setDeleteTarget(conv)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>Eliminar</TooltipContent>
+                                                </Tooltip>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className="md:hidden space-y-2">
+                        {conversions?.map((conv) => (
+                            <div key={conv.id} className="p-3 rounded-lg border bg-card">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2">
                                         <div className="flex flex-col items-center">
-                                            <span className="text-lg font-bold">
-                                                {conv.from_unit?.symbol}
-                                            </span>
+                                            <span className="font-bold text-lg">{conv.from_unit?.symbol}</span>
                                             <ArrowRight className="h-3 w-3 text-muted-foreground rotate-90" />
-                                            <span className="text-lg font-bold">
-                                                {conv.to_unit?.symbol}
-                                            </span>
+                                            <span className="font-bold text-lg">{conv.to_unit?.symbol}</span>
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-2xl font-bold text-primary">
-                                                {conv.conversion_factor}
-                                            </span>
+                                            <span className="font-bold text-xl text-primary">{conv.conversion_factor}</span>
                                             <span className="text-xs text-muted-foreground">
                                                 {conv.from_unit?.name} → {conv.to_unit?.name}
                                             </span>
@@ -151,25 +205,16 @@ export default function ConversionsPage() {
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="text-muted-foreground hover:text-destructive"
+                                        className="h-9 w-9 hover:bg-red-100 hover:text-red-600"
                                         onClick={() => setDeleteTarget(conv)}
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            )}
-
-            {conversions?.length === 0 && !isLoading && (
-                <div className="flex flex-col items-center justify-center p-8 text-center">
-                    <p className="text-muted-foreground">No hay conversiones configuradas</p>
-                    <p className="text-sm text-muted-foreground">
-                        Agrega conversiones para calcular costos correctamente
-                    </p>
-                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
             )}
 
             <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
@@ -197,5 +242,6 @@ export default function ConversionsPage() {
                 </DialogContent>
             </Dialog>
         </div>
+        </Tooltip>
     );
 }

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Pencil, X, Check, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useIngredients, useCreateIngredient, useDeleteIngredient, useUpdateIngredient } from '@/hooks/useIngredients';
 import { useUnits } from '@/hooks/useIngredients';
 
@@ -73,7 +74,8 @@ export default function IngredientsPage() {
     };
 
     return (
-        <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+        <Tooltip>
+        <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 pb-24">
             <Card>
                 <CardHeader>
                     <CardTitle>Ingredientes</CardTitle>
@@ -142,99 +144,240 @@ export default function IngredientsPage() {
                         )}
                     </div>
 
+                </CardContent>
+            </Card>
                     {isLoading && <p>Cargando...</p>}
                     {error && <p className="text-destructive">Error al cargar ingredientes</p>}
 
-                    <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {filteredIngredients?.length === 0 && search && (
-                            <p className="text-sm text-muted-foreground">No se encontraron ingredientes para "{search}"</p>
-                        )}
-                        {filteredIngredients?.map((ing) => (
-                            <Card key={ing.id} className="border-l-4 border-l-primary">
-                                <CardHeader className="pb-2">
+                    {filteredIngredients?.length === 0 && search && (
+                        <p className="text-sm text-muted-foreground">No se encontraron ingredientes para "{search}"</p>
+                    )}
+
+                    {filteredIngredients?.length === 0 && !search && (
+                        <p className="text-sm text-muted-foreground">No hay ingredientes agregados</p>
+                    )}
+
+                    <div className="mt-4 rounded-md border">
+                        <div className="hidden md:block overflow-x-auto overflow-y-auto max-h-[500px]">
+                            <table className="w-full text-sm dark:bg-gray-900">
+                                <thead className="sticky top-0 z-10 bg-muted border-b">
+                                    <tr>
+                                        <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Nombre</th>
+                                        <th className="px-3 py-2 text-right font-medium whitespace-nowrap">Precio Compra</th>
+                                        <th className="px-3 py-2 text-right font-medium whitespace-nowrap">Cantidad</th>
+                                        <th className="px-3 py-2 text-left font-medium whitespace-nowrap">Unidad</th>
+                                        <th className="px-3 py-2 text-right font-medium whitespace-nowrap">Precio/Unidad</th>
+                                        <th className="px-3 py-2 text-center font-medium whitespace-nowrap">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredIngredients?.map((ing) => (
+                                        <tr key={ing.id} className="border-b last:border-b-0 hover:bg-muted/30">
+                                            <td className="px-3 py-2 font-medium whitespace-nowrap">
+                                                {editingId === ing.id ? (
+                                                    <Input
+                                                        value={editForm.name}
+                                                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                                        className="h-7 w-full"
+                                                    />
+                                                ) : (
+                                                    ing.name
+                                                )}
+                                            </td>
+                                            <td className="px-3 py-2 text-right whitespace-nowrap">
+                                                {editingId === ing.id ? (
+                                                    <Input
+                                                        type="number"
+                                                        step="0.0001"
+                                                        value={editForm.purchase_price}
+                                                        onChange={(e) => setEditForm({ ...editForm, purchase_price: e.target.value })}
+                                                        className="h-7 w-20"
+                                                    />
+                                                ) : (
+                                                    `$${ing.purchase_price.toFixed(2)}`
+                                                )}
+                                            </td>
+                                            <td className="px-3 py-2 text-right whitespace-nowrap">
+                                                {editingId === ing.id ? (
+                                                    <Input
+                                                        type="number"
+                                                        step="0.0001"
+                                                        value={editForm.purchase_quantity}
+                                                        onChange={(e) => setEditForm({ ...editForm, purchase_quantity: e.target.value })}
+                                                        className="h-7 w-20"
+                                                    />
+                                                ) : (
+                                                    ing.purchase_quantity
+                                                )}
+                                            </td>
+                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                {editingId === ing.id ? (
+                                                    <select
+                                                        className="border-input flex h-7 rounded-md border bg-transparent px-2 py-0.5 text-sm"
+                                                        value={editForm.purchase_unit_id}
+                                                        onChange={(e) => setEditForm({ ...editForm, purchase_unit_id: e.target.value })}
+                                                    >
+                                                        {units?.map((unit) => (
+                                                            <option key={unit.id} value={unit.id}>
+                                                                {unit.symbol}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    ing.purchase_unit?.symbol || '-'
+                                                )}
+                                            </td>
+                                            <td className="px-3 py-2 text-right whitespace-nowrap">
+                                                {ing.price_per_unit ? `$${ing.price_per_unit.toFixed(2)}` : '-'}
+                                            </td>
+                                            <td className="px-3 py-2 whitespace-nowrap">
+                                                <div className="flex items-center justify-center gap-0.5">
+                                                    {editingId === ing.id ? (
+                                                        <>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30" onClick={() => saveEditing(ing.id)}>
+                                                                        <Check className="h-4 w-4" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>Guardar</TooltipContent>
+                                                            </Tooltip>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30" onClick={cancelEditing}>
+                                                                        <X className="h-4 w-4" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>Cancelar</TooltipContent>
+                                                            </Tooltip>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30" onClick={() => startEditing(ing)}>
+                                                                        <Pencil className="h-4 w-4" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>Editar</TooltipContent>
+                                                            </Tooltip>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30" onClick={() => deleteMutation.mutate(ing.id)}>
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>Eliminar</TooltipContent>
+                                                            </Tooltip>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div className="md:hidden divide-y">
+                            {filteredIngredients?.map((ing) => (
+                                <div key={ing.id} className="p-3 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium">{ing.name}</span>
+                                        <div className="flex items-center gap-0.5">
+                                            {editingId === ing.id ? (
+                                                <>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30" onClick={() => saveEditing(ing.id)}>
+                                                                <Check className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>Guardar</TooltipContent>
+                                                    </Tooltip>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30" onClick={cancelEditing}>
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>Cancelar</TooltipContent>
+                                                    </Tooltip>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30" onClick={() => startEditing(ing)}>
+                                                                <Pencil className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>Editar</TooltipContent>
+                                                    </Tooltip>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30" onClick={() => deleteMutation.mutate(ing.id)}>
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>Eliminar</TooltipContent>
+                                                    </Tooltip>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
                                     {editingId === ing.id ? (
-                                        <Input
-                                            value={editForm.name}
-                                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                            className="text-lg font-semibold"
-                                        />
-                                    ) : (
-                                        <CardTitle className="text-lg">{ing.name}</CardTitle>
-                                    )}
-                                </CardHeader>
-                                <CardContent className="space-y-1">
-                                    {editingId === ing.id ? (
-                                        <>
+                                        <div className="space-y-2">
                                             <div className="flex gap-2">
-                                                <Input
-                                                    type="number"
-                                                    step="0.0001"
-                                                    value={editForm.purchase_price}
-                                                    onChange={(e) => setEditForm({ ...editForm, purchase_price: e.target.value })}
-                                                    className="w-24"
-                                                />
-                                                <span className="self-center text-sm">/</span>
-                                                <Input
-                                                    type="number"
-                                                    step="0.0001"
-                                                    value={editForm.purchase_quantity}
-                                                    onChange={(e) => setEditForm({ ...editForm, purchase_quantity: e.target.value })}
-                                                    className="w-24"
-                                                />
-                                                <select
-                                                    className="border-input flex h-9 rounded-md border bg-transparent px-2 py-1 text-sm"
-                                                    value={editForm.purchase_unit_id}
-                                                    onChange={(e) => setEditForm({ ...editForm, purchase_unit_id: e.target.value })}
-                                                >
-                                                    {units?.map((unit) => (
-                                                        <option key={unit.id} value={unit.id}>
-                                                            {unit.symbol}
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                                <div className="flex-1">
+                                                    <label className="text-xs text-muted-foreground">Precio</label>
+                                                    <Input
+                                                        type="number"
+                                                        step="0.0001"
+                                                        value={editForm.purchase_price}
+                                                        onChange={(e) => setEditForm({ ...editForm, purchase_price: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label className="text-xs text-muted-foreground">Cantidad</label>
+                                                    <Input
+                                                        type="number"
+                                                        step="0.0001"
+                                                        value={editForm.purchase_quantity}
+                                                        onChange={(e) => setEditForm({ ...editForm, purchase_quantity: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label className="text-xs text-muted-foreground">Unidad</label>
+                                                    <select
+                                                        className="border-input flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
+                                                        value={editForm.purchase_unit_id}
+                                                        onChange={(e) => setEditForm({ ...editForm, purchase_unit_id: e.target.value })}
+                                                    >
+                                                        {units?.map((unit) => (
+                                                            <option key={unit.id} value={unit.id}>
+                                                                {unit.symbol}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </div>
-                                        </>
+                                        </div>
                                     ) : (
-                                        <>
+                                        <div className="space-y-1">
                                             <p className="text-sm text-muted-foreground">
                                                 Precio: ${ing.purchase_price.toFixed(2)} / {ing.purchase_quantity} {ing.purchase_unit?.symbol}
                                             </p>
                                             <p className="text-sm font-medium">
                                                 Precio por unidad: ${ing.price_per_unit?.toFixed(2)} {ing.purchase_unit?.symbol}
                                             </p>
-                                        </>
+                                        </div>
                                     )}
-                                </CardContent>
-                                <CardFooter className="flex gap-2">
-                                    {editingId === ing.id ? (
-                                        <>
-                                            <Button size="icon" variant="ghost" onClick={() => saveEditing(ing.id)}>
-                                                <Check className="h-4 w-4" />
-                                            </Button>
-                                            <Button size="icon" variant="ghost" onClick={cancelEditing}>
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Button size="icon" variant="ghost" onClick={() => startEditing(ing)}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="destructive"
-                                                size="icon"
-                                                onClick={() => deleteMutation.mutate(ing.id)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </>
-                                    )}
-                                </CardFooter>
-                            </Card>
-                        ))}
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </CardContent>
-            </Card>
         </div>
+        </Tooltip>
     );
 }

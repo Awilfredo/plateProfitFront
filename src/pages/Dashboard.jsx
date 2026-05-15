@@ -35,7 +35,7 @@ export default function Dashboard() {
     const unitCount = conversions?.length ?? 0;
 
     return (
-        <div className="flex h-full flex-1 flex-col gap-6">
+        <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 pb-24">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                     <GiCookingPot className="h-8 w-8 text-primary" />
@@ -198,34 +198,34 @@ function QuickActionsCard() {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <Plus className="h-5 w-5 text-primary" />
+                    <Plus className="h-5 w-5 text-primary shrink-0" />
                     Acciones Rápidas
                 </CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-2 gap-2">
-                    <Link to="/recipes">
-                        <Button variant="outline" className="w-full justify-start">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Nueva Receta
+                    <Link to="/recipes" className="min-w-0">
+                        <Button variant="outline" className="w-full justify-start gap-2 min-w-0">
+                            <Plus className="h-4 w-4 shrink-0" />
+                            <span className="truncate">Nueva Receta</span>
                         </Button>
                     </Link>
-                    <Link to="/ingredients">
-                        <Button variant="outline" className="w-full justify-start">
-                            <Utensils className="mr-2 h-4 w-4" />
-                            Agregar Ingrediente
+                    <Link to="/ingredients" className="min-w-0">
+                        <Button variant="outline" className="w-full justify-start gap-2 min-w-0">
+                            <Utensils className="h-4 w-4 shrink-0" />
+                            <span className="truncate">Agregar Ing.</span>
                         </Button>
                     </Link>
-                    <Link to="/units">
-                        <Button variant="outline" className="w-full justify-start">
-                            <Scale className="mr-2 h-4 w-4" />
-                            Ver Unidades
+                    <Link to="/units" className="min-w-0">
+                        <Button variant="outline" className="w-full justify-start gap-2 min-w-0">
+                            <Scale className="h-4 w-4 shrink-0" />
+                            <span className="truncate">Ver Unidades</span>
                         </Button>
                     </Link>
-                    <Link to="/ingredients">
-                        <Button variant="outline" className="w-full justify-start">
-                            <AlertTriangle className="mr-2 h-4 w-4" />
-                            Revisar Ingredientes
+                    <Link to="/ingredients" className="min-w-0">
+                        <Button variant="outline" className="w-full justify-start gap-2 min-w-0">
+                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                            <span className="truncate">Revisar Ing.</span>
                         </Button>
                     </Link>
                 </div>

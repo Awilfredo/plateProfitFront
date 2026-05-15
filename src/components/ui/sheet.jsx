@@ -23,7 +23,7 @@ function SheetOverlay({ className, ...props }) {
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/60 backdrop-blur-sm",
         className
       )}
       {...props}
@@ -38,14 +38,16 @@ function SheetContent({ className, children, side = "left", ...props }) {
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed z-50 gap-4 rounded-lg border p-6 shadow-lg transition ease-in-out inset-y-0 h-full w-3/4 max-w-sm",
-          side === "left" ? "left-0 border-r" : "right-0 border-l",
+          "bg-sidebar text-sidebar-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-left-1/2 data-[state=open]:slide-in-from-left-1/2 fixed z-50 flex flex-col gap-4 rounded-r-xl border-r border-sidebar-border shadow-2xl transition ease-out inset-y-0 h-full w-(--sidebar-width) max-w-[280px]",
           className
         )}
+        style={{
+          "--sidebar-width": "18rem",
+        }}
         {...props}
       >
         {children}
-        <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
+        <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-lg opacity-70 transition-all hover:opacity-100 hover:bg-sidebar-accent focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 p-1.5">
           <XIcon />
           <span className="sr-only">Close</span>
         </SheetPrimitive.Close>
